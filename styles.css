@@ -467,3 +467,13 @@ a{color:inherit;text-decoration:none}
 .macro-pct .dp::before{background:var(--accent)}
 .macro-pct .dc::before{background:var(--pro)}
 .macro-pct .df::before{background:#ff9f43}
+
+/* ===== auth / account ===== */
+.auth-field{text-align:left;margin-top:14px}
+.auth-error{color:var(--danger);font-size:13px;min-height:1.1em;margin:12px 0 6px;text-align:center}
+.modal .ghost-btn.wide{margin-top:10px}
+.account-card{margin-top:18px;max-width:560px}
+.account-card .snack-title{margin:10px 0 6px}
+.account-card .ghost-btn{margin-top:14px}
+.account-card .primary-btn{margin-top:14px}
+#sync-status{color:var(--accent-dim);font-weight:700}

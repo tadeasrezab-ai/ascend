@@ -299,6 +299,8 @@
 
     <div class="card targets-card" id="targets-card" hidden></div>
 
+    <div class="card account-card" id="account-card"></div>
+
     <button class="ghost-btn danger" id="reset-start">Restart the 10-week plan from today</button>
   </section>
 
@@ -332,6 +334,21 @@
   </div>
 </div>
 
+<!-- auth: log in to sync across devices -->
+<div class="modal-overlay" id="auth-modal" hidden>
+  <div class="modal card">
+    <span class="brand-mark big">▲</span>
+    <h2>Sign in to sync</h2>
+    <p class="card-note">Pick a username and a secret code. Use the same two on any device to load your data. New here? This creates your account.</p>
+    <div class="field auth-field"><label for="au-user">Username</label><input id="au-user" type="text" autocomplete="username" placeholder="e.g. tadeas" /></div>
+    <div class="field auth-field"><label for="au-code">Secret code</label><input id="au-code" type="password" autocomplete="current-password" placeholder="at least 4 characters" /></div>
+    <p class="auth-error" id="au-error"></p>
+    <button class="primary-btn wide" id="au-go">Continue</button>
+    <button class="ghost-btn wide" id="au-skip">Just use this device</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

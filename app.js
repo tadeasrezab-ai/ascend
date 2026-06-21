@@ -170,14 +170,63 @@ function sessionFor(dayType, week){
 }
 
 /* ---------- storage ---------- */
-const KEY={profile:'ascend.profile', meals:'ascend.meals', ticks:'ascend.ticks', stats:'ascend.stats', journal:'ascend.journal'};
+const KEY={profile:'ascend.profile', meals:'ascend.meals', ticks:'ascend.ticks', stats:'ascend.stats', journal:'ascend.journal', session:'ascend.session', localonly:'ascend.localonly'};
+const SYNC_KEYS=['profile','meals','ticks','stats','journal'];
 const load=(k,f)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??f}catch{return f}};
-const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+let session=null, restoring=false, syncTimer=null;
+const save=(k,v)=>{
+  localStorage.setItem(k,JSON.stringify(v));
+  if(!restoring && session && k!==KEY.session && k!==KEY.localonly) scheduleSync();
+};
 
 function todayKey(d=new Date()){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 const parseKey=dk=>new Date(dk+'T00:00:00');
+
+/* ===================================================================
+   CLOUD SYNC (Supabase, simple username + code)
+   Talks to two RPC functions over plain fetch. If config.js is blank,
+   cloudEnabled() is false and the app runs fully local.
+   =================================================================== */
+function cloudEnabled(){ const c=window.ASCEND_CFG; return !!(c && c.url && c.key); }
+async function rpc(fn,body){
+  const c=window.ASCEND_CFG;
+  const res=await fetch(`${c.url.replace(/\/$/,'')}/rest/v1/rpc/${fn}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':c.key,'Authorization':'Bearer '+c.key},
+    body:JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error('network '+res.status);
+  return res.json();
+}
+function bundle(){
+  const b={}; SYNC_KEYS.forEach(k=>{const v=localStorage.getItem(KEY[k]); if(v!=null) b[k]=JSON.parse(v);}); return b;
+}
+function restoreBundle(data){
+  restoring=true;
+  SYNC_KEYS.forEach(k=>{ if(data && data[k]!=null) localStorage.setItem(KEY[k],JSON.stringify(data[k])); else localStorage.removeItem(KEY[k]); });
+  profile=load(KEY.profile,null);
+  restoring=false;
+}
+function scheduleSync(){ clearTimeout(syncTimer); syncTimer=setTimeout(cloudSave,1200); }
+async function cloudSave(){
+  if(!session || !cloudEnabled()) return;
+  setSyncStatus('Saving…');
+  try{ await rpc('ascend_save',{p_username:session.u,p_code:session.c,p_data:bundle()}); setSyncStatus('All changes synced'); }
+  catch(e){ setSyncStatus('Offline — will retry when back online'); }
+}
+function setSyncStatus(t){ const el=document.getElementById('sync-status'); if(el) el.textContent=t; }
+async function doAuth(username,code){
+  const u=username.trim().toLowerCase();
+  const r=await rpc('ascend_auth',{p_username:u,p_code:code});
+  if(r.error) throw new Error(r.error);
+  session={u,c:code}; save(KEY.session,session); localStorage.removeItem(KEY.localonly);
+  const hasData = r.data && Object.keys(r.data).length>0;
+  if(hasData) restoreBundle(r.data);   // existing account: pull cloud data down
+  else await cloudSave();              // new/empty account: push this device's data up
+  return {created:!!r.created, hadData:hasData};
+}
 
 /* ---------- nutrition math ---------- */
 function targets(p){
@@ -897,7 +946,7 @@ function renderTargets(){
 /* ===================================================================
    NAV + EVENTS
    =================================================================== */
-const RENDER={today:renderToday,plan:renderPlan,moves:renderMoves,fuel:renderFuel,progress:renderProgress,you:()=>{}};
+const RENDER={today:renderToday,plan:renderPlan,moves:renderMoves,fuel:renderFuel,progress:renderProgress,you:()=>renderAccount()};
 function showView(v){
   $$('.view').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
   $$('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
@@ -978,6 +1027,52 @@ $('#reset-start').onclick=()=>{
 /* onboarding */
 $('#onboard-go').onclick=()=>{$('#onboard').hidden=true;showView('you');};
 
+/* ---------- auth (login to sync) ---------- */
+function afterAuth(){
+  $('#auth-modal').hidden=true;
+  fillProfileForm();
+  showView('today');
+  if(!profile || !profile.weight){ $('#onboard').hidden=false; }
+}
+$('#au-go').onclick=async()=>{
+  const u=$('#au-user').value, c=$('#au-code').value, err=$('#au-error');
+  if(u.trim().length<3 || c.length<4){ err.textContent='Username needs 3+ characters and the code 4+.'; return; }
+  $('#au-go').disabled=true; err.textContent='Connecting…';
+  try{ await doAuth(u,c); err.textContent=''; afterAuth(); }
+  catch(e){
+    err.textContent = e.message==='bad_code' ? 'That code doesn’t match this username.'
+      : e.message==='too_short' ? 'Username needs 3+ characters and the code 4+.'
+      : 'Could not connect. Check your internet and try again.';
+  } finally { $('#au-go').disabled=false; }
+};
+$('#au-skip').onclick=()=>{ save(KEY.localonly,true); afterAuth(); };
+
+function renderAccount(){
+  const card=$('#account-card'); if(!card) return;
+  if(!cloudEnabled()){
+    card.innerHTML=`<span class="tag">Cloud sync</span>
+      <p class="card-note" style="margin-top:10px">Cross-device sync isn’t switched on yet. Add your Supabase keys to <b>config.js</b> (see the setup steps), then a login appears here.</p>`;
+    return;
+  }
+  if(session){
+    card.innerHTML=`<span class="tag accent">Synced</span>
+      <h3 class="snack-title">Logged in as ${escapeHTML(session.u)}</h3>
+      <p class="card-note">Your data saves to the cloud and loads on any device with this username and code. <b id="sync-status">All changes synced</b></p>
+      <button class="ghost-btn" id="logout-btn">Log out</button>`;
+    $('#logout-btn').onclick=()=>{
+      localStorage.removeItem(KEY.session); session=null; save(KEY.localonly,true);
+      $('#au-user').value=''; $('#au-code').value=''; $('#au-error').textContent='';
+      $('#auth-modal').hidden=false;
+    };
+  } else {
+    card.innerHTML=`<span class="tag">Cloud sync</span>
+      <h3 class="snack-title">Not syncing</h3>
+      <p class="card-note">Log in with a username and code to save your data across devices.</p>
+      <button class="primary-btn" id="signin-btn">Sign in to sync</button>`;
+    $('#signin-btn').onclick=()=>{ $('#au-error').textContent=''; $('#auth-modal').hidden=false; };
+  }
+}
+
 /* reveal observer */
 let io;
 function observeReveals(){
@@ -988,9 +1083,20 @@ function observeReveals(){
 
 /* ---------- boot ---------- */
 function boot(){
+  session=load(KEY.session,null);
   fillProfileForm();
   showView('today');
   observeReveals();
-  if(!profile || !profile.weight){ $('#onboard').hidden=false; }
+  if(cloudEnabled() && session){
+    // logged in already: pull the latest from the cloud on open
+    rpc('ascend_auth',{p_username:session.u,p_code:session.c}).then(r=>{
+      if(r && !r.error && r.data && Object.keys(r.data).length){ restoreBundle(r.data); fillProfileForm(); showView('today'); }
+      if(!profile || !profile.weight){ $('#onboard').hidden=false; }
+    }).catch(()=>{ if(!profile || !profile.weight){ $('#onboard').hidden=false; } });
+  } else if(cloudEnabled() && !load(KEY.localonly,false)){
+    $('#auth-modal').hidden=false;   // ask to log in / create before onboarding
+  } else {
+    if(!profile || !profile.weight){ $('#onboard').hidden=false; }
+  }
 }
 boot();

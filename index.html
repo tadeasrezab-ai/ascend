@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0b0d" />
+<title>ASCEND · Strength &amp; Fuel</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- aurora backdrop -->
+<div class="aurora" aria-hidden="true">
+  <span class="blob b1"></span>
+  <span class="blob b2"></span>
+  <span class="blob b3"></span>
+</div>
+
+<!-- top nav -->
+<header class="topbar">
+  <a class="brand" href="#" data-view="today">
+    <span class="brand-mark">▲</span><span class="brand-word">ASCEND</span>
+  </a>
+  <nav class="nav" id="nav">
+    <button class="nav-link active" data-view="today">Today</button>
+    <button class="nav-link" data-view="plan">Plan</button>
+    <button class="nav-link" data-view="moves">Moves</button>
+    <button class="nav-link" data-view="fuel">Fuel</button>
+    <button class="nav-link" data-view="progress">Progress</button>
+    <button class="nav-link" data-view="you">You</button>
+  </nav>
+</header>
+
+<main id="app">
+
+  <!-- ============ TODAY ============ -->
+  <section class="view active" id="view-today">
+    <div class="hero">
+      <p class="eyebrow" id="today-date"></p>
+      <h1 class="hero-title" id="today-greet">Let's move.</h1>
+      <p class="hero-sub" id="today-phase"></p>
+    </div>
+
+    <div id="recap-banner"></div>
+
+    <div class="today-grid">
+      <!-- workout card -->
+      <article class="card workout-card reveal">
+        <div class="card-head">
+          <span class="tag" id="today-type-tag">Session</span>
+          <button class="ghost-btn" id="open-plan">Full plan →</button>
+        </div>
+        <h2 class="card-title" id="today-session-title"></h2>
+        <p class="card-note" id="today-session-focus"></p>
+        <ul class="block-list" id="today-blocks"></ul>
+        <div class="workout-foot" id="workout-foot"></div>
+      </article>
+
+      <!-- fuel card -->
+      <article class="card fuel-card reveal">
+        <div class="card-head">
+          <span class="tag">Fuel left today</span>
+          <button class="ghost-btn" data-view="fuel">Log a meal →</button>
+        </div>
+        <div class="rings">
+          <div class="ring-wrap">
+            <svg viewBox="0 0 120 120" class="ring">
+              <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+              <circle class="ring-fg cal" id="ring-cal" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <div class="ring-center">
+              <span class="ring-num" id="cal-left">0</span>
+              <span class="ring-label">kcal left</span>
+            </div>
+          </div>
+          <div class="ring-wrap">
+            <svg viewBox="0 0 120 120" class="ring">
+              <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+              <circle class="ring-fg pro" id="ring-pro" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <div class="ring-center">
+              <span class="ring-num" id="pro-left">0</span>
+              <span class="ring-label">g protein left</span>
+            </div>
+          </div>
+        </div>
+        <p class="card-note centered" id="fuel-summary">Set up your profile to get targets.</p>
+        <div class="macro-mini" id="macro-mini"></div>
+      </article>
+    </div>
+
+    <!-- daily check-in -->
+    <article class="card checkin reveal" id="checkin-card">
+      <span class="tag accent">Daily check-in</span>
+      <h3 class="snack-title">How are you today?</h3>
+      <div class="checkin-grid">
+        <div class="field">
+          <label for="j-sleep">Hours slept</label>
+          <input id="j-sleep" type="number" step="0.5" min="0" max="14" placeholder="7.5" />
+        </div>
+        <div class="field">
+          <label>How do you feel?</label>
+          <div class="mood-row" id="mood-row"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Did you train today?</label>
+        <div class="pick-row" id="trained-row"></div>
+      </div>
+      <div class="field">
+        <label for="j-note">Notes (optional)</label>
+        <input id="j-note" type="text" placeholder="Anything on your mind, soreness, energy…" autocomplete="off" />
+      </div>
+      <button type="button" class="primary-btn wide" id="j-save">Save check-in</button>
+      <p class="hint" id="j-hint"></p>
+    </article>
+
+    <!-- skill snack strip -->
+    <article class="card snack reveal">
+      <div>
+        <span class="tag accent">Daily skill snack</span>
+        <h3 class="snack-title" id="snack-title">Greasing the groove</h3>
+        <p class="card-note" id="snack-text"></p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ PLAN ============ -->
+  <section class="view" id="view-plan">
+    <div class="section-head">
+      <h1 class="page-title">The 10-week climb</h1>
+      <p class="page-sub">From 1 push-up and 0 pull-ups to clean reps of both. Built around your 4 kickbox days, then it keeps progressing for as long as you train.</p>
+    </div>
+
+    <h2 class="sub-head">Your training week</h2>
+    <div class="week-grid" id="week-grid"></div>
+
+    <h2 class="sub-head">The phases</h2>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <!-- ============ MOVES ============ -->
+  <section class="view" id="view-moves">
+    <div class="section-head">
+      <h1 class="page-title">Move library</h1>
+      <p class="page-sub">Hover or tap a card to see the end position. Form cues matter more than reps right now.</p>
+    </div>
+    <div class="moves-filter" id="moves-filter"></div>
+    <div class="moves-grid" id="moves-grid"></div>
+  </section>
+
+  <!-- ============ FUEL ============ -->
+  <section class="view" id="view-fuel">
+    <div class="section-head">
+      <h1 class="page-title">Fuel</h1>
+      <p class="page-sub" id="fuel-target-line"></p>
+    </div>
+
+    <div class="seg" id="fuel-seg">
+      <button class="seg-btn active" data-tab="log">Quick log</button>
+      <button class="seg-btn" data-tab="recipes">Healthy recipes</button>
+    </div>
+
+    <div id="fuel-pane-log">
+      <div class="fuel-layout">
+        <div>
+          <div class="totals-bar" id="totals-bar"></div>
+
+          <h2 class="sub-head">Quick add</h2>
+          <div class="quick-grid" id="quick-grid"></div>
+
+          <h2 class="sub-head">Describe it, I'll do the maths</h2>
+          <form class="meal-form card" id="meal-form">
+            <div class="field">
+              <label for="m-name">What did you eat?</label>
+              <input id="m-name" type="text" placeholder="e.g. 200g chicken, 1 cup rice, 2 eggs" autocomplete="off" />
+            </div>
+            <button type="button" class="ghost-btn wide" id="m-estimate">Estimate calories &amp; protein</button>
+            <p class="hint" id="m-hint"></p>
+            <div class="field-row">
+              <div class="field">
+                <label for="m-kcal">Calories (kcal)</label>
+                <input id="m-kcal" type="number" inputmode="numeric" min="0" placeholder="0" />
+              </div>
+              <div class="field">
+                <label for="m-pro">Protein (g)</label>
+                <input id="m-pro" type="number" inputmode="numeric" min="0" placeholder="0" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="m-photo">Photo (optional)</label>
+              <input id="m-photo" type="file" accept="image/*" capture="environment" />
+              <img id="m-preview" class="photo-preview" alt="" hidden />
+            </div>
+            <button type="submit" class="primary-btn wide">Add to today</button>
+          </form>
+        </div>
+
+        <div>
+          <h2 class="sub-head">Today's log</h2>
+          <div class="meal-log" id="meal-log"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="fuel-pane-recipes" hidden>
+      <div class="moves-filter" id="recipe-filter"></div>
+      <div class="recipe-grid" id="recipe-grid"></div>
+    </div>
+  </section>
+
+  <!-- ============ PROGRESS ============ -->
+  <section class="view" id="view-progress">
+    <div class="section-head">
+      <h1 class="page-title">Progress</h1>
+      <p class="page-sub">Track the numbers that prove it's working: bodyweight, and your best push-up and pull-up sets.</p>
+    </div>
+
+    <div class="seg" id="stat-seg">
+      <button class="seg-btn active" data-metric="weight">Weight</button>
+      <button class="seg-btn" data-metric="pushups">Push-ups</button>
+      <button class="seg-btn" data-metric="pullups">Pull-ups</button>
+      <button class="seg-btn" data-metric="sleep">Sleep</button>
+      <button class="seg-btn" data-metric="mood">Mood</button>
+    </div>
+
+    <form class="stat-form card" id="stat-form">
+      <div class="field">
+        <label for="stat-val">Log today's value (<span id="stat-unit">kg</span>)</label>
+        <input id="stat-val" type="number" step="0.1" min="0" inputmode="decimal" placeholder="Enter a number" />
+      </div>
+      <button type="submit" class="primary-btn">Add entry</button>
+    </form>
+
+    <div class="card chart-card" id="chart-card"></div>
+
+    <h2 class="sub-head">Weekly recaps</h2>
+    <div class="recaps" id="recaps"></div>
+  </section>
+
+  <!-- ============ YOU ============ -->
+  <section class="view" id="view-you">
+    <div class="section-head">
+      <h1 class="page-title">You</h1>
+      <p class="page-sub">Your numbers drive every target. Update them whenever your weight changes.</p>
+    </div>
+
+    <form class="card profile-form" id="profile-form">
+      <div class="field">
+        <label for="p-name">Name</label>
+        <input id="p-name" type="text" placeholder="Your name" autocomplete="name" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="p-sex">Sex</label>
+          <select id="p-sex">
+            <option value="m">Male</option>
+            <option value="f">Female</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="p-age">Age</label>
+          <input id="p-age" type="number" min="14" max="90" placeholder="25" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="p-height">Height (cm)</label>
+          <input id="p-height" type="number" min="120" max="230" placeholder="180" />
+        </div>
+        <div class="field">
+          <label for="p-weight">Weight (kg)</label>
+          <input id="p-weight" type="number" min="35" max="200" step="0.1" placeholder="78" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="p-activity">Activity level</label>
+        <select id="p-activity">
+          <option value="1.375">Light (training 1-3x / week)</option>
+          <option value="1.55">Moderate (training 3-5x / week)</option>
+          <option value="1.725" selected>High (hard training 6-7x / week)</option>
+          <option value="1.9">Very high (twice-a-day / physical job)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="p-start">Plan start date</label>
+        <input id="p-start" type="date" />
+      </div>
+      <div class="field">
+        <label for="p-goal">Goal</label>
+        <select id="p-goal">
+          <option value="recomp" selected>Slight cut + build strength (recommended)</option>
+          <option value="maintain">Maintain weight, get stronger</option>
+          <option value="cut">Lose fat faster</option>
+        </select>
+      </div>
+      <button type="submit" class="primary-btn wide">Save &amp; recalculate</button>
+    </form>
+
+    <div class="card targets-card" id="targets-card" hidden></div>
+
+    <button class="ghost-btn danger" id="reset-start">Restart the 10-week plan from today</button>
+  </section>
+
+</main>
+
+<!-- mobile bottom nav -->
+<nav class="tabbar" id="tabbar">
+  <button class="tab active" data-view="today"><span>◎</span>Today</button>
+  <button class="tab" data-view="plan"><span>▦</span>Plan</button>
+  <button class="tab" data-view="moves"><span>▷</span>Moves</button>
+  <button class="tab" data-view="fuel"><span>◍</span>Fuel</button>
+  <button class="tab" data-view="progress"><span>◔</span>Stats</button>
+  <button class="tab" data-view="you"><span>●</span>You</button>
+</nav>
+
+<!-- onboarding -->
+<div class="modal-overlay" id="onboard" hidden>
+  <div class="modal card">
+    <span class="brand-mark big">▲</span>
+    <h2>Welcome to ASCEND</h2>
+    <p class="card-note">Two quick things and you're set: your body stats (for calorie &amp; protein targets) and today becomes day one of your climb.</p>
+    <button class="primary-btn wide" id="onboard-go">Set up my plan</button>
+  </div>
+</div>
+
+<!-- recipe modal -->
+<div class="modal-overlay" id="recipe-modal" hidden>
+  <div class="modal card recipe-modal">
+    <button class="modal-close" id="recipe-close" aria-label="Close">×</button>
+    <div id="recipe-body"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
